@@ -1,0 +1,23 @@
+{
+    "name": "Store",
+    "router": "index.js schema.js",
+    "crud": {
+        "update": {
+            "keys": [
+                "thumb",
+                "domain",
+                "website",
+                "active",
+                "theme",
+                "name",
+                "description",
+                "markup",
+                "data",
+                "tag",
+                "variables"
+            ]
+        },
+        "delete": [""]
+    },
+    "dependencies": {}
+}
