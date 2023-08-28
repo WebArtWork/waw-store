@@ -6,7 +6,7 @@ const nginx = `server {
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 			proxy_set_header Host $http_host;
 			proxy_set_header X-NginX-Proxy true;
-			proxy_pass http://127.0.0.1:9905;
+			proxy_pass http://127.0.0.1:PORT;
 			proxy_redirect off;
 	}
 	listen 80;
@@ -20,6 +20,9 @@ const path = require("path");
 const fs = require("fs");
 const template = path.join(process.cwd(), "template");
 module.exports = async (waw) => {
+	if (!waw.config.store) {
+		waw.config.store = {};
+	}
 	waw.stores = async (query = {}, limit, count = false) => {
 		let exe = count ? waw.Store.countDocuments(query) : waw.Store.find(query);
 
@@ -148,159 +151,96 @@ module.exports = async (waw) => {
 			const latest_products = [products.shift(), products.shift()];
 			const articles = await waw.articles(query, 4);
 			res.send(
-				waw.render(path.join(_template, "dist", "index.html"), {
-					...templateJson,
-					title: store.name,
-					description:
-						store.data.land_description || store.description,
-					latest_products,
-					products,
-					articles,
-				})
-			);
-		};
-
-		waw.build(_template, "articles");
-		waw.build(_template, "article");
-		waw.serve_articles[store.domain] = async (req, res) => {
-			const articles = await waw.articles(query, 15);
-			res.send(
-				waw.render(path.join(_template, "dist", "articles.html"), {
-					...templateJson,
-					title: store.name + " | " + store.name,
-					description:
-						store.data.articles_description || store.description,
-					articles,
-				})
-			);
-		};
-		waw.serve_article[store.domain] = async (req, res) => {
-			const article = await waw.article({
-				_id: req.params._id,
-			});
-			const articles = await waw.articles({
-				_id: {
-					$ne: req.params._id,
-				},
-			});
-
-			res.send(
-				waw.render(path.join(_template, "dist", "article.html"), {
-					...templateJson,
-					...article.toObject(),
-					article,
-					data: {
-						...store.data,
-						...article.data,
+				waw.render(
+					path.join(_template, "dist", "index.html"),
+					{
+						...templateJson,
+						title: store.name,
+						description:
+							store.data.land_description || store.description,
+						latest_products,
+						products,
+						articles,
 					},
-					title: article.name + " | " + store.name,
-					description: article.short,
-					articles,
-				})
+					waw.translate(req)
+				)
 			);
 		};
 
-		waw.build(_template, "products");
-		waw.build(_template, "product");
-		waw.serve_products[store.domain] = async (req, res) => {
-			const products = await waw.products(
-				req.params.tag_id
-					? {
-						...query,
-						tag: req.params.tag_id,
+		// config store
+		const prepareObject = (obj) => {
+			if (typeof obj === 'string') {
+				obj = obj.split(' ');
+			}
+
+			if (!Array.isArray(obj) && typeof obj === 'object') {
+				obj = [obj];
+			}
+
+			for (let i = 0; i < obj.length; i++) {
+				if (typeof obj[i] === 'string') {
+					obj[i] = {
+						path: obj[i]
 					}
-					: req.originalUrl === "/sales"
-						? {
-							...query,
-							sale: {
-								$gt: 0,
-								$ne: null,
-							},
-						}
-						: query,
-				20
-			);
-			res.send(
-				waw.render(path.join(_template, "dist", "products.html"), {
-					...templateJson,
-					title: store.name + " | " + store.name,
-					description:
-						store.data.products_description || store.description,
-					products
-				})
-			);
-		};
-		waw.serve_product[store.domain] = async (req, res) => {
-			const product = await waw.product({
-				_id: req.params._id,
-			});
-			const products = await waw.products(
-				req.params.tag_id
-					? {
-						...query,
-						tag: req.params.tag_id,
-					}
-					: req.originalUrl === "/sales"
-						? {
-							...query,
-							sale: {
-								$gt: 0,
-								$ne: null,
-							},
-						}
-						: query,
-				6
-			);
-			res.send(
-				waw.render(path.join(_template, "dist", "product.html"), {
-					...templateJson,
-					...product.toObject(),
-					products,
-					product,
-					data: {
-						...store.data,
-						...product.data,
-					},
-					title: product.name + " | " + store.name,
-					description: product.short,
-				})
-			);
-		};
+				}
+			}
 
-		waw.build(_template, "designs");
-		waw.build(_template, "design");
-		waw.serve_designs[store.domain] = async (req, res) => {
-			const designs = await waw.designs(
-				req.params.tag_id ? { tag: req.params.tag_id } : query
-			);
-			res.send(
-				waw.render(path.join(_template, "dist", "designs.html"), {
+			return obj;
+		}
+		const configurePage = page => {
+			waw.build(_template, page.module);
+			waw['serve_' + page.module][store.domain] = async (req, res) => {
+				const json = {
 					...templateJson,
-					title: store.name + " | " + store.name,
+					title: " | " + store.name,
 					description:
-						store.data.designs_description || store.description,
-					designs,
-				})
-			);
-		};
-		waw.serve_design[store.domain] = async (req, res) => {
-			const design = await waw.design({
-				_id: req.params._id,
-			});
-			res.send(
-				waw.render(path.join(_template, "dist", "design.html"), {
-					...templateJson,
-					...design.toObject(),
-					design,
-					data: {
-						...store.data,
-						...design.data,
-					},
-					title: design.name + " | " + store.name,
-					description: design.short,
-				})
-			);
-		};
+						store.data[page.module + '_description'] ||
+						store.description ||
+						templateJson.description
+				};
+
+				if (page.doc) {
+					page.doc = prepareObject(page.doc);
+					for (const doc of page.doc) {
+						json[doc.path] = await waw[doc.path](
+							query,
+							doc.limit || 20
+						);
+						if (json.title === " | " + store.name) {
+							json.title = json[doc.path].name + json.title;
+						}
+					}
+				} else {
+					const name = store.data[page.module + '_name'] || page.module;
+					json.title = name + json.title;
+				}
+
+				if (page.docs) {
+					page.docs = prepareObject(page.docs);
+					for (const doc of page.docs) {
+						json[doc.path] = await waw[doc.path](
+							query,
+							doc.limit || 20
+						);
+					}
+				}
+
+				res.send(
+					waw.render(
+						path.join(
+							_template,
+							"dist",
+							page.module + ".html"
+						),
+						json,
+						waw.translate(req)
+					)
+				);
+			};
+		}
+		for (const page of waw.config.store.pages || []) {
+			configurePage(page);
+		}
 
 		waw.build(_template, "content");
 		const serve_content = async (content) => {
@@ -318,7 +258,8 @@ module.exports = async (waw) => {
 									...content.data,
 								},
 								title: content.name + " | " + store.name,
-							}
+							},
+							waw.translate(req)
 						)
 					);
 				} else {
@@ -439,7 +380,7 @@ module.exports = async (waw) => {
 
 	const setNginx = (domain, _filePath) => {
 		if (!fs.existsSync(_filePath)) {
-			fs.writeFileSync(_filePath, nginx.replace("HOST", domain));
+			fs.writeFileSync(_filePath, nginx.replace("HOST", domain).replace("PORT", waw.config.store.nginxPort));
 		}
 
 		if (fs.readFileSync(_filePath).length < 500) {
