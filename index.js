@@ -295,36 +295,52 @@ module.exports = async (waw) => {
 			waw.build(template, "stores");
 			waw.build(template, "store");
 			setTimeout(() => {
-				waw.url(path.join(template, "dist", "stores.html"), "/stores", {
-					...waw.readJson(path.join(template, "template.json")),
-					...waw.readJson(
-						path.join(template, "pages", "stores", "page.json")
-					),
-					...waw.config,
-					title: "Stores | " + waw.config.title,
-					description:
-						"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
-					stores
+				waw.app.get('/stores', (req, res) => {
+					res.send(
+						waw.render(
+							path.join(template, "dist", "stores.html"),
+							{
+								...waw.readJson(path.join(template, "template.json")),
+								...waw.readJson(
+									path.join(template, "pages", "stores", "page.json")
+								),
+								...waw.config,
+								title: "Stores | " + waw.config.title,
+								description:
+									"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
+								stores
+							},
+							waw.translate(req)
+						)
+					);
 				});
 			}, 1000);
 		}
 
+		const serveStorePage = (store) => {
+			waw.app.get("/store/" + store._id, (req, res) => {
+				res.send(
+					waw.render(
+						path.join(template, "dist", "store.html"),
+						{
+							...waw.readJson(path.join(template, "template.json")),
+							...waw.readJson(
+								path.join(template, "pages", "stores", "page.json")
+							),
+							...waw.config,
+							title: store.name + " | " + waw.config.title,
+							description:
+								"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
+							store,
+						},
+						waw.translate(req)
+					)
+				);
+			});
+		}
+
 		for (const store of stores) {
-			waw.url(
-				path.join(template, "dist", "store.html"),
-				"/store/" + store._id,
-				{
-					...waw.readJson(path.join(template, "template.json")),
-					...waw.readJson(
-						path.join(template, "pages", "stores", "page.json")
-					),
-					...waw.config,
-					title: store.name + " | " + waw.config.title,
-					description:
-						"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
-					store,
-				}
-			);
+			serveStorePage(store);
 
 			if (!store.theme) {
 				continue;
