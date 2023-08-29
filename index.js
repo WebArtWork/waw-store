@@ -328,8 +328,7 @@ module.exports = async (waw) => {
 								),
 								...waw.config,
 								title: "Stores | " + waw.config.title,
-								description:
-									"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
+								description: waw.config.storeDescription
 								stores,
 							},
 							waw.translate(req)
