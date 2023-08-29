@@ -24,7 +24,9 @@ module.exports = async (waw) => {
 		waw.config.store = {};
 	}
 	waw.stores = async (query = {}, limit, count = false) => {
-		let exe = count ? waw.Store.countDocuments(query) : waw.Store.find(query);
+		let exe = count
+			? waw.Store.countDocuments(query)
+			: waw.Store.find(query);
 
 		if (limit) {
 			exe = exe.limit(limit);
@@ -37,46 +39,46 @@ module.exports = async (waw) => {
 		return await Store.findOne(query);
 	};
 
-	waw.crud('store', {
+	waw.crud("store", {
 		get: {
-			query: (req)=>{
+			query: (req) => {
 				if (req.user.is.admin) {
 					return {};
 				} else {
 					return {
-						moderators: req.user._id
+						moderators: req.user._id,
 					};
 				}
-			}
+			},
 		},
 		update: {
 			query: (req) => {
 				if (req.user.is.admin) {
 					return {
-						_id: req.body._id
+						_id: req.body._id,
 					};
 				} else {
 					return {
 						moderators: req.user._id,
-						_id: req.body._id
+						_id: req.body._id,
 					};
 				}
-			}
+			},
 		},
 		delete: {
 			query: (req) => {
 				if (req.user.is.admin) {
 					return {
-						_id: req.body._id
+						_id: req.body._id,
 					};
 				} else {
 					return {
 						moderators: req.user._id,
-						_id: req.body._id
+						_id: req.body._id,
 					};
 				}
-			}
-		}
+			},
+		},
 	});
 	const allGroups = await waw.category_groups();
 	const allTags = await waw.tagsWithCategories();
@@ -86,23 +88,27 @@ module.exports = async (waw) => {
 			host: store.domain,
 		});
 		const query = {
-			author: store.author
+			author: store.author,
 		};
 		const contents = await waw.contents(query);
 		const tags = allTags.slice();
 		for (let i = tags.length - 1; i >= 0; i--) {
-			if (tags[i].category.group === 'store') {
+			if (!tags[i].category || tags[i].category.group === "store") {
 				tags.splice(i, 1);
 				continue;
 			}
 			for (const group of waw.config.groups) {
-				if (
-					tags[i].category.group === group.name
-				) {
-					if (!await waw[group.docs]({
-						...query,
-						tag: tags[i]._id
-					}, 0, true)) {
+				if (tags[i].category.group === group.name) {
+					if (
+						!(await waw[group.docs](
+							{
+								...query,
+								tag: tags[i]._id,
+							},
+							0,
+							true
+						))
+					) {
 						tags.splice(i, 1);
 					}
 					break;
@@ -110,14 +116,23 @@ module.exports = async (waw) => {
 			}
 		}
 		const groups = JSON.parse(JSON.stringify(allGroups));
-		const tagIds = tags.map(t => t._id.toString());
+		const tagIds = tags.map((t) => t._id.toString());
 		for (let k = groups.length - 1; k >= 0; k--) {
 			groups[k].categories = groups[k].categories || [];
 
 			for (let j = groups[k].categories.length - 1; j >= 0; j--) {
-				groups[k].categories[j].tags = groups[k].categories[j].tags || [];
-				for (let i = groups[k].categories[j].tags.length -1; i >= 0; i--) {
-					if (tagIds.indexOf(groups[k].categories[j].tags[i]._id.toString()) === -1) {
+				groups[k].categories[j].tags =
+					groups[k].categories[j].tags || [];
+				for (
+					let i = groups[k].categories[j].tags.length - 1;
+					i >= 0;
+					i--
+				) {
+					if (
+						tagIds.indexOf(
+							groups[k].categories[j].tags[i]._id.toString()
+						) === -1
+					) {
 						groups[k].categories[j].tags.splice(i, 1);
 					}
 				}
@@ -131,18 +146,16 @@ module.exports = async (waw) => {
 				groups.splice(k, 1);
 			}
 		}
+		const footer = {
+			contents,
+			groups
+		};
 		const templateJson = {
 			variables: store.variables,
 			tags,
 			store,
 			groups,
-			footer: {
-				articles: await waw.articles(query, 3),
-				designs: await waw.designs(query, 3),
-				products: await waw.products(query, 3),
-				contents,
-				groups
-			}
+			footer,
 		};
 
 		waw.build(_template, "index");
@@ -169,34 +182,34 @@ module.exports = async (waw) => {
 
 		// config store
 		const prepareObject = (obj) => {
-			if (typeof obj === 'string') {
-				obj = obj.split(' ');
+			if (typeof obj === "string") {
+				obj = obj.split(" ");
 			}
 
-			if (!Array.isArray(obj) && typeof obj === 'object') {
+			if (!Array.isArray(obj) && typeof obj === "object") {
 				obj = [obj];
 			}
 
 			for (let i = 0; i < obj.length; i++) {
-				if (typeof obj[i] === 'string') {
+				if (typeof obj[i] === "string") {
 					obj[i] = {
-						path: obj[i]
-					}
+						path: obj[i],
+					};
 				}
 			}
 
 			return obj;
-		}
-		const configurePage = page => {
+		};
+		const configurePage = (page) => {
 			waw.build(_template, page.module);
-			waw['serve_' + page.module][store.domain] = async (req, res) => {
+			waw["serve_" + page.module][store.domain] = async (req, res) => {
 				const json = {
 					...templateJson,
 					title: " | " + store.name,
 					description:
-						store.data[page.module + '_description'] ||
+						store.data[page.module + "_description"] ||
 						store.description ||
-						templateJson.description
+						templateJson.description,
 				};
 
 				if (page.doc) {
@@ -211,7 +224,8 @@ module.exports = async (waw) => {
 						}
 					}
 				} else {
-					const name = store.data[page.module + '_name'] || page.module;
+					const name =
+						store.data[page.module + "_name"] || page.module;
 					json.title = name + json.title;
 				}
 
@@ -222,22 +236,23 @@ module.exports = async (waw) => {
 							query,
 							doc.limit || 20
 						);
+
+						footer[doc.footerPath || doc.path] = await waw[doc.path](
+							query,
+							doc.footerLimit || 5
+						);
 					}
 				}
 
 				res.send(
 					waw.render(
-						path.join(
-							_template,
-							"dist",
-							page.module + ".html"
-						),
+						path.join(_template, "dist", page.module + ".html"),
 						json,
 						waw.translate(req)
 					)
 				);
 			};
-		}
+		};
 		for (const page of waw.config.store.pages || []) {
 			configurePage(page);
 		}
@@ -277,16 +292,16 @@ module.exports = async (waw) => {
 		const stores = await waw.Store.find(
 			author
 				? {
-					author,
-					domain: {
-						$exists: true,
-					},
-				}
+						author,
+						domain: {
+							$exists: true,
+						},
+				  }
 				: {
-					domain: {
-						$exists: true,
-					},
-				}
+						domain: {
+							$exists: true,
+						},
+				  }
 		).populate({
 			path: "theme",
 			select: "folder",
@@ -295,20 +310,27 @@ module.exports = async (waw) => {
 			waw.build(template, "stores");
 			waw.build(template, "store");
 			setTimeout(() => {
-				waw.app.get('/stores', (req, res) => {
+				waw.app.get("/stores", (req, res) => {
 					res.send(
 						waw.render(
 							path.join(template, "dist", "stores.html"),
 							{
-								...waw.readJson(path.join(template, "template.json")),
 								...waw.readJson(
-									path.join(template, "pages", "stores", "page.json")
+									path.join(template, "template.json")
+								),
+								...waw.readJson(
+									path.join(
+										template,
+										"pages",
+										"stores",
+										"page.json"
+									)
 								),
 								...waw.config,
 								title: "Stores | " + waw.config.title,
 								description:
 									"Welcome to our section featuring clothing stores! Here you can explore various stores, their locations, and the types of products they offer.We provide reviews of popular clothing stores, where you can learn about their style, brands, types of clothing and accessories they sell.",
-								stores
+								stores,
 							},
 							waw.translate(req)
 						)
@@ -323,9 +345,16 @@ module.exports = async (waw) => {
 					waw.render(
 						path.join(template, "dist", "store.html"),
 						{
-							...waw.readJson(path.join(template, "template.json")),
 							...waw.readJson(
-								path.join(template, "pages", "stores", "page.json")
+								path.join(template, "template.json")
+							),
+							...waw.readJson(
+								path.join(
+									template,
+									"pages",
+									"stores",
+									"page.json"
+								)
 							),
 							...waw.config,
 							title: store.name + " | " + waw.config.title,
@@ -337,7 +366,7 @@ module.exports = async (waw) => {
 					)
 				);
 			});
-		}
+		};
 
 		for (const store of stores) {
 			serveStorePage(store);
@@ -368,7 +397,7 @@ module.exports = async (waw) => {
 			store.domain &&
 			store.theme &&
 			domain_regex.test(store.domain) &&
-			!store.domain.endsWith('.' + waw.config.land)
+			!store.domain.endsWith("." + waw.config.land)
 		) {
 			setNginx(store.domain, filePath.replace("HOST", store.domain));
 		}
@@ -396,7 +425,12 @@ module.exports = async (waw) => {
 
 	const setNginx = (domain, _filePath) => {
 		if (!fs.existsSync(_filePath)) {
-			fs.writeFileSync(_filePath, nginx.replace("HOST", domain).replace("PORT", waw.config.store.nginxPort));
+			fs.writeFileSync(
+				_filePath,
+				nginx
+					.replace("HOST", domain)
+					.replace("PORT", waw.config.store.nginxPort)
+			);
 		}
 
 		if (fs.readFileSync(_filePath).length < 500) {
