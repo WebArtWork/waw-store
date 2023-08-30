@@ -328,7 +328,7 @@ module.exports = async (waw) => {
 								),
 								...waw.config,
 								title: "Stores | " + waw.config.title,
-								description: waw.config.storeDescription
+								description: waw.config.storeDescription,
 								stores,
 							},
 							waw.translate(req)
