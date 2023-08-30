@@ -402,7 +402,7 @@ module.exports = async (waw) => {
 		}
 
 		if (store.theme) {
-			const _store = await Store.findOne({
+			const _store = await waw.Store.findOne({
 				_id: store._id,
 			}).populate({
 				path: "theme",
