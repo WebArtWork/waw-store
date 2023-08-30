@@ -79,7 +79,7 @@ module.exports = async (waw) => {
 				}
 			},
 		},
-	});
+	await waw.wait(500);
 	const allGroups = await waw.category_groups();
 	const allTags = await waw.tagsWithCategories();
 	const serveStore = async (store, _template) => {
