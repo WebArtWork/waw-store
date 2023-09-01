@@ -358,6 +358,7 @@ module.exports = async (waw) => {
 							),
 							...waw.config,
 							title: waw.config.storeTitle|| waw.config.title,
+							 image: waw.config.storeImage || waw.config.image,
                                                         description: waw.config.storeDescription || waw.config.description,
 							store,
 						},
