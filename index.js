@@ -169,9 +169,9 @@ module.exports = async (waw) => {
 					path.join(_template, "dist", "index.html"),
 					{
 						...templateJson,
-						title: store.name,
-						description:
-							store.data.land_description || store.description,
+						title: waw.config.storeTitle|| waw.config.title,
+                                                        description: waw.config.storeDescription || waw.config.description,
+                                                        image: waw.config.storeImage|| waw.config.image,
 						latest_products,
 						products,
 						articles,
