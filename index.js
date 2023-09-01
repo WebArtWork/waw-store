@@ -171,7 +171,7 @@ module.exports = async (waw) => {
 						...templateJson,
 						title: waw.config.storeTitle|| waw.config.title,
                                                         description: waw.config.storeDescription || waw.config.description,
-                                                        image: waw.config.storeImage,
+                                                        image: waw.config.storeImage || waw.config.image,
 						latest_products,
 						products,
 						articles,
