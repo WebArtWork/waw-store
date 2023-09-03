@@ -440,7 +440,7 @@ module.exports = async (waw) => {
 	};
 
 	waw.store_middleware = async (req, res, next) => {
-		const store = await Store.find({
+		const store = await waw.Store.find({
 			domain: req.get("host"),
 		});
 
