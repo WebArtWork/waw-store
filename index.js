@@ -160,27 +160,25 @@ module.exports = async (waw) => {
 		};
 
 		waw.build(_template, "index");
-		waw.serve_land[store.domain] = async (req, res) => {
-			const products = await waw.products(query, 6);
-			const latest_products = [products.shift(), products.shift()];
-			const articles = await waw.articles(query, 4);
-			res.send(
-				waw.render(
-					path.join(_template, "dist", "index.html"),
-					{
-						...templateJson,
-						title: waw.config.storeTitle|| waw.config.title,
-                                                        description: waw.config.storeDescription || waw.config.description,
-                                                        image: waw.config.storeImage || waw.config.image,
-						latest_products,
-						products,
-						articles,
-					},
-					waw.translate(req)
-				)
-			);
-		};
-
+                waw.store_landing = {};
+                waw.serve_land[store.domain] = async (req, res) => {
+	         const json = {
+		...templateJson,
+		title: waw.config.storeTitle || waw.config.title,
+		description: waw.config.storeDescription || waw.config.description,
+		image: waw.config.storeImage || waw.config.image
+	        }
+	         for (const field in waw.store_landing) {
+		  json[field] = await waw.store_landing[field](query);
+	        }
+	        res.send(
+		waw.render(
+			path.join(_template, "dist", "index.html"),
+			json,
+			waw.translate(req)
+		      )
+	            );
+                };
 		// config store
 		const prepareObject = (obj) => {
 			if (typeof obj === "string") {
