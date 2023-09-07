@@ -40,17 +40,18 @@ module.exports = async (waw) => {
 	};
 
 	waw.crud("store", {
-		get: {
-			query: (req) => {
-				if (req.user.is.admin) {
-					return {};
-				} else {
-					return {
-						moderators: req.user._id,
-					};
-				}
+		get: [
+			{
+				ensure: waw.next
 			},
-		},
+			{
+				name: 'public',
+				ensure: waw.next,
+				query: ()=>{
+					return {};
+				}
+			}
+		],
 		update: {
 			query: (req) => {
 				if (req.user.is.admin) {
