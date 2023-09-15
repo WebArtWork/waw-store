@@ -95,9 +95,14 @@ module.exports = async (waw) => {
 		const contents = await waw.contents(query);
 		const tags = allTags.slice();
 		for (let i = tags.length - 1; i >= 0; i--) {
-			if (!tags[i].category || tags[i].category.group === "store") {
+			if (
+				!tags[i].category ||
+				tags[i].category.group === "store" ||
+				waw.config.groups.map(g => g.name).indexOf(tags[i].category.group) === -1
+			) {
 				tags.splice(i, 1);
 				continue;
+			}
 			}
 			for (const group of waw.config.groups) {
 				if (tags[i].category.group === group.name) {
