@@ -103,7 +103,7 @@ module.exports = async (waw) => {
 				tags.splice(i, 1);
 				continue;
 			}
-			}
+		}
 			for (const group of waw.config.groups) {
 				if (tags[i].category.group === group.name) {
 					if (
