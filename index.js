@@ -230,7 +230,7 @@ module.exports = async (waw) => {
           page.docs = prepareObject(page.docs);
           for (const doc of page.docs) {
           json[doc.path] = await waw[doc.path](
-		  req.params._id ?
+		 req.params.tag_id ?
 		  { ...query, _id: req.params.tag_id}:
 		  query,
 		 doc.limit || 20
