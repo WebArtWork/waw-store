@@ -231,9 +231,9 @@ module.exports = async (waw) => {
           for (const doc of page.docs) {
           json[doc.path] = await waw[doc.path](
 		  req.params._id ?
-		  { ...query, _id: req.params.tag_id};
+		  { ...query, _id: req.params.tag_id}
 		  query,
-			  doc.limit \|| 20
+		 doc.limit || 20
 		  );
 
             footer[doc.footerPath || doc.path] = await waw[doc.path](
