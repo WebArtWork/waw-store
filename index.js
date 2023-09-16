@@ -229,7 +229,12 @@ module.exports = async (waw) => {
         if (page.docs) {
           page.docs = prepareObject(page.docs);
           for (const doc of page.docs) {
-            json[doc.path] = await waw[doc.path](query, doc.limit || 20);
+          json[doc.path] = await waw[doc.path](
+		  req.params._id ?
+		  { ...query, _id: req.params.tag_id};
+		  query,
+			  doc.limit \|| 20
+		  );
 
             footer[doc.footerPath || doc.path] = await waw[doc.path](
               query,
