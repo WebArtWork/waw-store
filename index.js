@@ -152,7 +152,7 @@ module.exports = async (waw) => {
     };
     const templateJson = {
       variables: store.variables,
-      tags,
+      tags: tags.slice(0, 10),
       store,
       groups,
       footer,
