@@ -1,7 +1,6 @@
 {
     "repo":"git@github.com:WebArtWork/waw-store.git",
     "name": "Store",
-    "router": "index.js schema.js",
    "crud": {
 		"get": ["", "public"],
         "update": {
