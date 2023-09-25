@@ -1,24 +1,29 @@
 {
-    "repo":"git@github.com:WebArtWork/waw-store.git",
-    "name": "Store",
-   "crud": {
-		"get": ["", "public"],
-        "update": {
-            "keys": [
-                "thumb",
-                "domain",
-                "website",
-                "active",
-                "theme",
-                "name",
-                "description",
-                "markup",
-                "data",
-                "tag",
-                "variables"
-            ]
-        },
-        "delete": [""]
-    },
-    "dependencies": {}
+	"repo": "git@github.com:WebArtWork/waw-store.git",
+	"name": "Store",
+	"crud": {
+		"get": [
+			"",
+			"public"
+		],
+		"update": {
+			"keys": [
+				"thumb",
+				"domain",
+				"website",
+				"active",
+				"theme",
+				"name",
+				"description",
+				"markup",
+				"data",
+				"tag",
+				"variables"
+			]
+		},
+		"delete": [
+			""
+		]
+	},
+	"dependencies": {}
 }
