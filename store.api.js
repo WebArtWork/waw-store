@@ -20,6 +20,18 @@ const path = require("path");
 const fs = require("fs");
 const template = path.join(process.cwd(), "template");
 module.exports = async (waw) => {
+	waw.store_middleware = async (req, res, next) => {
+		const store = await waw.Store.findOne({
+			domain: req.get("host"),
+		});
+
+		if (store) {
+			res.locals.store = store;
+		}
+
+		next();
+	};
+
 	if (!waw.config.store) {
 		waw.config.store = {};
 	}
@@ -446,17 +458,5 @@ module.exports = async (waw) => {
 			execSync(SSL.replace("HOST", domain));
 			execSync("service nginx restart");
 		}
-	};
-
-	waw.store_middleware = async (req, res, next) => {
-		const store = await waw.Store.findOne({
-			domain: req.get("host"),
-		});
-
-		if (store) {
-			res.locals.store = store;
-		}
-
-		next();
 	};
 };
