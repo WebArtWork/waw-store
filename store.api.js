@@ -92,6 +92,14 @@ module.exports = async (waw) => {
 		},
 	});
 	await waw.wait(500);
+	const stores_content = {};
+	waw.use(async (req, res, next) => {
+		if (stores_content[req.get("host") + req.originalUrl]) {
+			stores_content[req.get("host") + req.originalUrl]();
+		} else {
+			next();
+		}
+	});
 	const allGroups = await waw.category_groups();
 	const allTags = await waw.tagsWithCategories();
 	const serveStore = async (store, _template) => {
@@ -160,14 +168,14 @@ module.exports = async (waw) => {
 		}
 		const footer = {
 			contents,
-			groups,
+			groups
 		};
 		const templateJson = {
 			variables: store.variables,
 			tags,
 			store,
 			groups,
-			footer,
+			footer
 		};
 
 		waw.build(_template, "index");
@@ -271,31 +279,24 @@ module.exports = async (waw) => {
 
 		waw.build(_template, "content");
 		const serve_content = async (content) => {
-			waw.use(async (req, res, next) => {
-				if (
-					req.get("host") === store.domain &&
-					content.url === req.originalUrl
-				) {
-					res.send(
-						waw.render(
-							path.join(_template, "dist", "content.html"),
-							{
-								...templateJson,
-								...content.toObject(),
-								content,
-								data: {
-									...store.data,
-									...content.data,
-								},
-								title: content.name + " | " + store.name,
+			stores_content[store.domain + content.url] = () => {
+				res.send(
+					waw.render(
+						path.join(_template, "dist", "content.html"),
+						{
+							...templateJson,
+							...content.toObject(),
+							content,
+							data: {
+								...store.data,
+								...content.data,
 							},
-							waw.translate(req)
-						)
-					);
-				} else {
-					next();
-				}
-			});
+							title: content.name + " | " + store.name,
+						},
+						waw.translate(req)
+					)
+				);
+			}
 		};
 		for (const content of contents) {
 			serve_content(content);
@@ -305,7 +306,7 @@ module.exports = async (waw) => {
 		waw.serve_cart[store.domain] = async (req, res, json = {}) => {
 			res.send(
 				waw.render(
-					path.join(_template, "dist", "content.html"),
+					path.join(_template, "dist", "cart.html"),
 					{
 						...templateJson,
 						...json,
