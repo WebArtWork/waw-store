@@ -2,7 +2,10 @@
 	"repo": "git@github.com:WebArtWork/waw-store.git",
 	"name": "Store",
 	"crud": {
-		"get": ["", "public"],
+		"get": [
+			"",
+			"public"
+		],
 		"update": {
 			"keys": [
 				"thumb",
@@ -18,7 +21,9 @@
 				"variables"
 			]
 		},
-		"delete": [""]
+		"delete": [
+			""
+		]
 	},
 	"dependencies": {}
 }
