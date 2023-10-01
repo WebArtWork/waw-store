@@ -20,6 +20,7 @@ const path = require("path");
 const fs = require("fs");
 const template = path.join(process.cwd(), "template");
 module.exports = async (waw) => {
+	waw.store_landing = {};
 	waw.store_middleware = async (req, res, next) => {
 		const store = await waw.Store.findOne({
 			domain: req.get("host"),
@@ -179,7 +180,6 @@ module.exports = async (waw) => {
 		};
 
 		waw.build(_template, "index");
-		waw.store_landing = {};
 		waw.serve_land[store.domain] = async (req, res) => {
 			const json = {
 				...templateJson,
@@ -190,6 +190,11 @@ module.exports = async (waw) => {
 			for (const field in waw.store_landing) {
 				json[field] = await waw.store_landing[field](query);
 			}
+			console.log(
+				waw.store_landing,
+				json.products && json.products.length || 0,
+				json.articles && json.articles.length || 0
+			);
 			res.send(
 				waw.render(
 					path.join(_template, "dist", "index.html"),
@@ -357,7 +362,7 @@ module.exports = async (waw) => {
 								...waw.config,
 								title: waw.config.storeTitle || waw.config.title,
 								description: waw.config.storeDescription,
-								stores,
+								stores
 							},
 							waw.translate(req)
 						)
