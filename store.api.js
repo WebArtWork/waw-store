@@ -190,11 +190,6 @@ module.exports = async (waw) => {
 			for (const field in waw.store_landing) {
 				json[field] = await waw.store_landing[field](query);
 			}
-			console.log(
-				waw.store_landing,
-				json.products && json.products.length || 0,
-				json.articles && json.articles.length || 0
-			);
 			res.send(
 				waw.render(
 					path.join(_template, "dist", "index.html"),
