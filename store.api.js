@@ -302,24 +302,26 @@ module.exports = async (waw) => {
 			serve_content(content);
 		}
 
-		waw.build(_template, "cart");
-		waw.serve_cart[store.domain] = async (req, res, json = {}) => {
-			res.send(
-				waw.render(
-					path.join(_template, "dist", "cart.html"),
-					{
-						...templateJson,
-						...json,
-						data: {
-							...store.data,
-							...(json.data || {}),
+		if (waw.serve_cart) {
+			waw.build(_template, "cart");
+			waw.serve_cart[store.domain] = async (req, res, json = {}) => {
+				res.send(
+					waw.render(
+						path.join(_template, "dist", "cart.html"),
+						{
+							...templateJson,
+							...json,
+							data: {
+								...store.data,
+								...(json.data || {}),
+							},
+							title: "Cart | " + store.name,
 						},
-						title: "Cart | " + store.name,
-					},
-					waw.translate(req)
-				)
-			);
-		};
+						waw.translate(req)
+					)
+				);
+			};
+		}
 	};
 
 	// manage Stores
