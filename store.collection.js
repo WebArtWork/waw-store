@@ -5,6 +5,7 @@ module.exports = async function (waw) {
 		thumb: String,
 		description: String,
 		domain: String,
+		url: { type: String, sparse: true, trim: true, unique: true },
 		website: String,
 		markup: Number,
 		data: {},
@@ -35,6 +36,7 @@ module.exports = async function (waw) {
 		this.moderators = [user._id];
 		this.tag = obj.tag;
 		this.domain = obj.domain;
+		this.url = obj.url;
 		this.website = obj.website;
 		this.thumb = obj.thumb;
 		this.markup = obj.markup;
