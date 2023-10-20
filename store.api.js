@@ -104,9 +104,10 @@ module.exports = async (waw) => {
 	const allGroups = await waw.category_groups();
 	const allTags = await waw.tagsWithCategories();
 	const serveStore = async (store, _template) => {
+		console.log('serveStore: ', store.domain);
 		waw.serve(_template, {
 			prefix: "/" + store.theme.folder,
-			host: store.domain,
+			host: store.domain
 		});
 		const query = {
 			author: store.author,
