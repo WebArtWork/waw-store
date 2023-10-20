@@ -448,6 +448,7 @@ module.exports = async (waw) => {
 	waw.on("store_update", setStore);
 
 	const setNginx = (domain, _filePath) => {
+		console.log('setNginx: ', domain);
 		if (!fs.existsSync(_filePath)) {
 			fs.writeFileSync(
 				_filePath,
