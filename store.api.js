@@ -91,7 +91,12 @@ module.exports = async (waw) => {
 				}
 			},
 		},
-	});
+	})
+	const seo = {
+		title: waw.config.name,
+		description: waw.config.description,
+		image: 'https://body.webart.work/template/img/logo.png'
+	};
 	await waw.wait(500);
 	const stores_content = {};
 	waw.use(async (req, res, next) => {
