@@ -92,11 +92,6 @@ module.exports = async (waw) => {
 			},
 		},
 	})
-	const seo = {
-		title: waw.config.name,
-		description: waw.config.description,
-		image: 'https://body.webart.work/template/img/logo.png'
-	};
 	await waw.wait(500);
 	const stores_content = {};
 	waw.use(async (req, res, next) => {
@@ -185,26 +180,48 @@ module.exports = async (waw) => {
 			footer
 		};
 
-		waw.build(_template, "index");
-		waw.serve_land[store.domain] = async (req, res) => {
-			const json = {
-				...templateJson,
-				title: waw.config.storeTitle || waw.config.title,
-				description: waw.config.storeDescription || waw.config.description,
-				image: waw.config.storeImage || waw.config.image,
-			};
-			for (const field in waw.store_landing) {
-				json[field] = await waw.store_landing[field](query);
-			}
-			res.send(
-				waw.render(
-					path.join(_template, "dist", "index.html"),
-					json,
-					waw.translate(req)
-				)
-			);
-		};
+		// waw.build(_template, "index");
+		// waw.serve_land[store.domain] = async (req, res) => {
+		// 	const json = {
+		// 		...templateJson,
+		// 		title: waw.config.storeTitle || waw.config.title,
+		// 		description: waw.config.storeDescription || waw.config.description,
+		// 		image: waw.config.storeImage || waw.config.image,
+		// 	};
+		// 	for (const field in waw.store_landing) {
+		// 		json[field] = await waw.store_landing[field](query);
+		// 	}
+		// 	res.send(
+		// 		waw.render(
+		// 			path.join(_template, "dist", "index.html"),
+		// 			json,
+		// 			waw.translate(req)
+		// 		)
+		// 	);
+		// };
+
 		// config store
+		const _page = {
+			'/': async (req, res) => {
+				const json = {
+					...templateJson,
+					title: waw.config.storeTitle || waw.config.title,
+					description: waw.config.storeDescription || waw.config.description,
+					image: waw.config.storeImage || waw.config.image,
+				};
+				for (const field in waw.store_landing) {
+					json[field] = await waw.store_landing[field](query);
+				}
+				res.send(
+					waw.render(
+						path.join(_template, "dist", "index.html"),
+						json,
+						waw.translate(req)
+					)
+				);
+			}
+		}
+		let _pages = 'index content';
 		const prepareObject = (obj) => {
 			if (typeof obj === "string") {
 				obj = obj.split(" ");
@@ -226,7 +243,8 @@ module.exports = async (waw) => {
 		};
 		const configurePage = (page) => {
 			waw.build(_template, page.module);
-			waw["serve_" + page.module][store.domain] = async (req, res, prejson = {}) => {
+			_pages += ' ', page.module;
+			const callback = async (req, res, prejson = {}) => {
 				const json = {
 					...templateJson,
 					...prejson,
@@ -278,14 +296,17 @@ module.exports = async (waw) => {
 					)
 				);
 			};
+			const urls = page.url.split(' ');
+			for (const url of urls) {
+				_page[url] = callback;
+			}
 		};
 		for (const page of waw.config.store.pages || []) {
 			configurePage(page);
 		}
 
-		waw.build(_template, "content");
 		const serve_content = async (content) => {
-			stores_content[store.domain + content.url] = () => {
+			_page[store.domain + content.url] = () => {
 				res.send(
 					waw.render(
 						path.join(_template, "dist", "content.html"),
@@ -307,6 +328,14 @@ module.exports = async (waw) => {
 		for (const content of contents) {
 			serve_content(content);
 		}
+		waw.api({
+			domain: store.domain,
+			template: {
+				prefix: "/" + store.theme.folder,
+				pages: _pages
+			},
+			page: _page
+		});
 
 		if (waw.serve_cart) {
 			waw.build(_template, "cart");
