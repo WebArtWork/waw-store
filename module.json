@@ -1,5 +1,5 @@
 {
-	"repo_temp": "git@github.com:WebArtWork/waw-store.git",
+	"repo": "git@github.com:WebArtWork/waw-store.git",
 	"name": "Store",
 	"crud": {
 		"get": ["", "public","admin"],
