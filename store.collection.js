@@ -12,23 +12,29 @@ module.exports = async function (waw) {
 		variables: {},
 		tag: {
 			type: waw.mongoose.Schema.Types.ObjectId,
-			ref: 'Tag'
+			ref: "Tag",
 		},
+		headerTags: [
+			{
+				type: waw.mongoose.Schema.Types.ObjectId,
+				ref: "Tag",
+			}
+		],
 		theme: {
 			type: waw.mongoose.Schema.Types.ObjectId,
-			ref: 'Theme'
+			ref: "Theme",
 		},
 		author: {
 			type: waw.mongoose.Schema.Types.ObjectId,
-			ref: 'User'
+			ref: "User",
 		},
 		moderators: [
 			{
 				type: waw.mongoose.Schema.Types.ObjectId,
 				sparse: true,
-				ref: 'User'
-			}
-		]
+				ref: "User",
+			},
+		],
 	});
 
 	Schema.methods.create = function (obj, user, waw) {
@@ -44,7 +50,7 @@ module.exports = async function (waw) {
 		this.name = obj.name;
 		this.description = obj.description;
 		this.data = obj.data;
-	}
+	};
 
-	return waw.Store = waw.mongoose.model('Store', Schema);
-}
+	return (waw.Store = waw.mongoose.model("Store", Schema));
+};

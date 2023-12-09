@@ -98,17 +98,8 @@ module.exports = async (waw) => {
 		router: "/api/store",
 		post: {
 			"/domain": async (req, res) => {
-				console.log(req.user);
-				console.log(
-					await waw.Store.count({
-						_id: {
-							$ne: req.body._id,
-						},
-						domain: req.body.domain,
-					})
-				);
 				if (
-					// req.user &&
+					req.user &&
 					!(await waw.Store.count({
 						_id: {
 							$ne: req.body._id,
@@ -117,41 +108,48 @@ module.exports = async (waw) => {
 					}))
 				) {
 					dns.lookup(req.body.domain, async (err, address) => {
-						console.log(
-							address,
-							waw.config.store.ip,
-							address === waw.config.store.ip
-						);
 						if (err) {
-							console.log(err);
-							res.send("Failed to get DNS of the domain");
+							res.json({
+								text: "Failed to get DNS of the domain"
+							});
 						} else {
 							if (address === waw.config.store.ip) {
 								const store = await waw.Store.findOne({
 									_id: req.body._id,
-									// moderators: req.user._id,
+									moderators: req.user._id,
 								});
 
 								store.domain = req.body.domain;
 
 								await store.save();
 
-								res.send("Domain has been updated");
+								res.json({
+									updated: true,
+									text: "Domain has been updated"
+								});
 
 								setNginx(
 									store.domain,
 									filePath.replace("HOST", store.domain)
 								);
+
+								waw.loadStores({
+									_id: store._id
+								});
 							} else {
-								req.send("Ip is not configured on domain");
+								req.json({
+									text: "Ip is not configured on domain"
+								});
 							}
 						}
 					});
 				} else {
-					res.send(
-						req.user
-							? "Domain has been registered with other store"
-							: "Unauthorized user"
+					res.json(
+						{
+							text: req.user
+								? "Domain has been registered with other store"
+								: "Unauthorized user"
+						}
 					);
 				}
 			},

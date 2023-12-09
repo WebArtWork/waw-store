@@ -15,6 +15,7 @@
 				"markup",
 				"data",
 				"tag",
+				"headerTags",
 				"variables"
 			]
 		},

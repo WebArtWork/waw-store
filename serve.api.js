@@ -66,6 +66,8 @@ module.exports = async (waw) => {
 					await processJson(page.json, store, json, req);
 				}
 
+				console.log(req.originalUrl, json);
+
 				res.send(
 					waw.render(
 						path.join(_template, "dist", page.page + ".html"),
