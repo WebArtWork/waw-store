@@ -28,6 +28,7 @@ module.exports = async (waw) => {
 
 		next();
 	};
+
 	waw.stores = async (query = {}, limit, count = false) => {
 		let exe = count
 			? waw.Store.countDocuments(query)
