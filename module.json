@@ -1,5 +1,5 @@
 {
-	"repo": "git@github.com:WebArtWork/waw-store.git",
+	"repolink": "git@github.com:WebArtWork/waw-store.git",
 	"name": "Store",
 	"crud": {
 		"get": ["", "public","admin"],
