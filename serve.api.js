@@ -1,28 +1,5 @@
 const path = require("path");
 module.exports = async (waw) => {
-	const processJson = async (jsons, store, fillJson, req) => {
-		if (typeof jsons === "string") {
-			jsons = jsons.split(" ");
-		}
-
-		if (!Array.isArray(jsons) && typeof jsons === "object") {
-			jsons = [jsons];
-		}
-
-		for (let i = 0; i < jsons.length; i++) {
-			if (typeof jsons[i] === "string") {
-				jsons[i] = {
-					path: jsons[i],
-				};
-			}
-		}
-		for (const json of jsons) {
-			if (typeof waw[json.path] === "function") {
-				await waw[json.path](store, fillJson, req);
-			}
-		}
-	};
-
 	const serveStore = async (store, _template) => {
 		console.log("serveStore: ", store.domain);
 
@@ -33,7 +10,7 @@ module.exports = async (waw) => {
 		};
 
 		if (waw.config.store.json) {
-			await processJson(waw.config.store.json, store, templateJson);
+			await waw.processJson(waw.config.store.json, store, templateJson);
 		}
 
 		const _page = {};
@@ -62,8 +39,12 @@ module.exports = async (waw) => {
 						templateJson.description,
 				};
 
+				if (waw.config.store.pageJson) {
+					await waw.processJson(waw.config.store.pageJson, store, json, req);
+				}
+
 				if (page.json) {
-					await processJson(page.json, store, json, req);
+					await waw.processJson(page.json, store, json, req);
 				}
 
 				res.send(
