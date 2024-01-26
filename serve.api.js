@@ -14,13 +14,8 @@ module.exports = async (waw) => {
 		}
 
 		const _page = {};
-		let _pages = "content";
 		const configurePage = (page) => {
 			page.pageJson = page.pageJson || {};
-
-			if (!(_pages + " ").includes(" " + page.page + " ")) {
-				_pages += " " + page.page;
-			}
 
 			const callback = async (req, res) => {
 				const json = {
@@ -91,11 +86,6 @@ module.exports = async (waw) => {
 
 		waw.api({
 			domain: store.domain,
-			template: {
-				path: _template,
-				prefix: "/" + store.theme.folder,
-				pages: _pages,
-			},
 			page: _page,
 		});
 	};
