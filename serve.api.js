@@ -114,7 +114,7 @@ module.exports = async (waw) => {
 		});
 
 		for (const store of stores) {
-			if (store.theme) {
+			if (store.theme && store.domain) {
 				serveStore(
 					store,
 					path.join(process.cwd(), "templates", store.theme.folder)

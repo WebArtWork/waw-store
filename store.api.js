@@ -95,6 +95,26 @@ module.exports = async (waw) => {
 		},
 	});
 
+	await waw.wait(2000);
+
+	waw.setUnique("subdomain", async (subdomain) => {
+		const operators = await waw.Operator.find({
+			domain: {
+				$exists: true,
+			},
+		}).select("domain");
+
+		for (const operator of operators) {
+			if (
+				!!(await waw.Store.count({
+					domain: subdomain + "." + operator.domain,
+				}))
+			) {
+				return true;
+			}
+		}
+		return false;
+	});
 	waw.api({
 		router: "/api/store",
 		post: {
@@ -111,7 +131,7 @@ module.exports = async (waw) => {
 					dns.lookup(req.body.domain, async (err, address) => {
 						if (err) {
 							res.json({
-								text: "Failed to get DNS of the domain"
+								text: "Failed to get DNS of the domain",
 							});
 						} else {
 							if (address === waw.config.store.ip) {
@@ -126,7 +146,7 @@ module.exports = async (waw) => {
 
 								res.json({
 									updated: true,
-									text: "Domain has been updated"
+									text: "Domain has been updated",
 								});
 
 								setNginx(
@@ -135,23 +155,21 @@ module.exports = async (waw) => {
 								);
 
 								waw.loadStores({
-									_id: store._id
+									_id: store._id,
 								});
 							} else {
 								req.json({
-									text: "Ip is not configured on domain"
+									text: "Ip is not configured on domain",
 								});
 							}
 						}
 					});
 				} else {
-					res.json(
-						{
-							text: req.user
-								? "Domain has been registered with other store"
-								: "Unauthorized user"
-						}
-					);
+					res.json({
+						text: req.user
+							? "Domain has been registered with other store"
+							: "Unauthorized user",
+					});
 				}
 			},
 		},
