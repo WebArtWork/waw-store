@@ -5,6 +5,7 @@
 		"get": ["", "public","admin"],
 		"update": {
 			"keys": [
+				"enabled",
 				"thumb",
 				"domain",
 				"website",
@@ -16,7 +17,10 @@
 				"data",
 				"tag",
 				"headerTags",
-				"variables"
+				"variables",
+				"indexPage",
+				"features",
+				"location"
 			]
 		},
 		"delete": [""]

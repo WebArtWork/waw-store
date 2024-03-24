@@ -29,6 +29,56 @@ module.exports = async (waw) => {
 		next();
 	};
 
+	waw.storeIds_middleware = async (req, res, next) => {
+		if (req.user) {
+			req.storeIds = (
+				await waw.Store.find({
+					moderators: req.user._id,
+				}).select("_id")
+			).map((s) => s.id);
+
+			if (!req.body.store || req.storeIds.includes(req.body.store)) {
+				next();
+			} else {
+				res.send(false);
+			}
+		} else {
+			res.send(false);
+		}
+	};
+
+	waw.storeBasedCrud = {
+		create: {
+			ensure: waw.storeIds_middleware,
+		},
+		get: {
+			ensure: waw.storeIds_middleware,
+			query: (req) => {
+				return {
+					store: req.storeIds,
+				};
+			},
+		},
+		update: {
+			ensure: waw.storeIds_middleware,
+			query: (req) => {
+				return {
+					store: req.storeIds,
+					_id: req.body._id,
+				};
+			},
+		},
+		delete: {
+			ensure: waw.storeIds_middleware,
+			query: (req) => {
+				return {
+					store: req.storeIds,
+					_id: req.body._id,
+				};
+			},
+		},
+	};
+
 	waw.stores = async (query = {}, limit, count = false) => {
 		let exe = count
 			? waw.Store.countDocuments(query)
@@ -48,7 +98,13 @@ module.exports = async (waw) => {
 	waw.crud("store", {
 		get: [
 			{
-				ensure: waw.next,
+				// query: (req) => {
+				// 	return req.user.is.agent
+				// 		? {}
+				// 		: {
+				// 				moderators: req.user._id,
+				// 		  };
+				// },
 			},
 			{
 				name: "public",
@@ -115,11 +171,33 @@ module.exports = async (waw) => {
 		}
 		return false;
 	});
+
 	waw.api({
 		router: "/api/store",
 		post: {
 			"/domain": async (req, res) => {
+				if (!req.user) {
+					return res.json({
+						text: "Unauthorized user"
+					});
+				}
+				const store = await waw.Store.findOne(req.user.is.admin ? {
+					_id: req.body._id
+				} : {
+					_id: req.body._id,
+					moderators: req.user._id,
+				});
 				if (
+					req.body.domain &&
+					!req.body.domain.includes('.')
+				) {
+					store.domain = req.body.domain + '.' + waw.config.land;
+					await store.save();
+					res.json({
+						updated: store.domain,
+						text: "Domain has been updated",
+					});
+				} else if (
 					req.user &&
 					!(await waw.Store.count({
 						_id: {
@@ -135,17 +213,10 @@ module.exports = async (waw) => {
 							});
 						} else {
 							if (address === waw.config.store.ip) {
-								const store = await waw.Store.findOne({
-									_id: req.body._id,
-									moderators: req.user._id,
-								});
-
 								store.domain = req.body.domain;
-
 								await store.save();
-
 								res.json({
-									updated: true,
+									updated: store.domain,
 									text: "Domain has been updated",
 								});
 
@@ -166,12 +237,36 @@ module.exports = async (waw) => {
 					});
 				} else {
 					res.json({
-						text: req.user
-							? "Domain has been registered with other store"
-							: "Unauthorized user",
+						text: "Domain has been registered with other store"
 					});
 				}
 			},
+			"/change/agent": waw.role('admin' , async (req, res) => {
+				const store = await waw.Store.findById(req.body.storeId);
+				if (store) {
+					store.agent = req.body.userId;
+					await store.save();
+					res.json(true);
+				} else {
+					res.json(false);
+				}
+			}),
+			"/change/ownership": waw.role('admin agent', async (req, res) => {
+				const store = await waw.Store.findOne(req.user.is.admin ? {
+					_id: req.body.storeId
+				} : {
+					_id: req.body.storeId,
+					author: req.user._id
+				});
+				if (store) {
+					store.author = req.body.userId;
+					store.moderators = [req.body.userId];
+					await store.save();
+					res.json(true);
+				} else {
+					res.json(false);
+				}
+			})
 		},
 	});
 
@@ -191,4 +286,13 @@ module.exports = async (waw) => {
 			execSync("service nginx restart");
 		}
 	};
+
+	waw.addJson(
+		"stores",
+		async (store, fillJson) => {
+			fillJson.stores = await waw.stores({});
+			fillJson.footer.stores = fillJson.stores;
+		},
+		"Filling all stores documents"
+	);
 };

@@ -1,16 +1,40 @@
 const path = require("path");
 module.exports = async (waw) => {
 	const serveStore = async (store, _template) => {
+		if (!store.domain) return;
 		console.log("serveStore: ", store.domain);
 
+		store.data = store.data || {};
+
 		const templateJson = {
+			...waw.config,
 			variables: store.variables,
+			store,
 			footer: {},
-			_page: {},
+			_page: {}
 		};
 
 		if (waw.config.store.json) {
 			await waw.processJson(waw.config.store.json, store, templateJson);
+		}
+
+		waw.apiCleanPage(store.domain);
+
+		if (!store.enabled) {
+			return waw.api({
+				domain: store.domain,
+				page: {
+					"*": (req, res)=>{
+						res.send(
+							waw.render(
+								path.join(_template, "dist", "disabled.html"),
+								templateJson,
+								waw.translate(req)
+							)
+						);
+					}
+				},
+			});
 		}
 
 		const _page = {};
@@ -22,16 +46,22 @@ module.exports = async (waw) => {
 					...templateJson,
 					...page.pageJson,
 					title:
-						(store.data[page.page + "_name"] ||
-							page.pageJson.name ||
+						(store.data[page.page + "_title"] ||
+							store.data["seo_title"] ||
 							page.page) +
 						" | " +
 						store.name,
 					description:
 						store.data[page.page + "_description"] ||
-						page.pageJson.description ||
+						store.data["seo_description"] ||
 						store.description ||
 						templateJson.description,
+					image:
+						"https://" +
+						store.domain +
+						(store.data["seo_thumb"] ||
+							store.thumb ||
+							templateJson.thumb),
 				};
 
 				if (waw.config.store.pageJson) {
@@ -56,8 +86,21 @@ module.exports = async (waw) => {
 				_page[url] = callback;
 			}
 		};
+
 		for (const page of waw.config.store.pages || []) {
-			configurePage(page);
+			if (
+				page.page === 'index' &&
+				store.indexPage &&
+				waw.config.store.pages.find(p => p.page === store.indexPage)
+			) {
+				const replacedPage = waw.config.store.pages.find(p => p.page === store.indexPage);
+				configurePage({
+					...replacedPage,
+					url: '/'
+				});
+			} else {
+				configurePage(page);
+			}
 		}
 
 		const templatePageJson = (url, pageJson) => {
@@ -107,7 +150,7 @@ module.exports = async (waw) => {
 			if (store.theme && store.domain) {
 				serveStore(
 					store,
-					path.join(process.cwd(), "templates", store.theme.folder)
+					path.join(process.cwd(), "themes", store.theme.id)
 				);
 			}
 		}
@@ -115,29 +158,32 @@ module.exports = async (waw) => {
 	waw.loadStores();
 
 	// manage SSL
+	const timeouts = {};
 	const setStore = async (store) => {
-		if (waw.reserved(store.domain)) {
-			return;
-		}
+		if (store.theme && store.domain) {
+			if (timeouts[store.domain]) {
+				clearTimeout(timeouts[store.domain]);
+			}
+			timeouts[store.domain] = setTimeout(() => {
+				const _template = path.join(
+					process.cwd(),
+					"themes",
+					store.theme.toString()
+				);
 
-		if (store.theme) {
-			const _store = await waw.Store.findOne({
-				_id: store._id,
-			}).populate({
-				path: "theme",
-				select: "folder",
-			});
-
-			const _template = path.join(
-				process.cwd(),
-				"templates",
-				_store.theme.folder
-			);
-
-			serveStore(_store, _template);
+				serveStore(store, _template);
+			}, 2000);
 		}
 	};
 
 	waw.on("store_create", setStore);
 	waw.on("store_update", setStore);
+
+	const setLabelEntity = async (doc) => {
+		setStore(await waw.Store.findById(doc.store))
+	};
+	waw.on("label_create", setLabelEntity);
+	waw.on("label_update", setLabelEntity);
+	waw.on("entity_create", setLabelEntity);
+	waw.on("entity_update", setLabelEntity);
 };
