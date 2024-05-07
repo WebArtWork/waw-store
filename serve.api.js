@@ -11,7 +11,7 @@ module.exports = async (waw) => {
 			variables: store.variables,
 			store,
 			footer: {},
-			_page: {}
+			_page: {},
 		};
 
 		if (waw.config.store.json) {
@@ -24,7 +24,7 @@ module.exports = async (waw) => {
 			return waw.api({
 				domain: store.domain,
 				page: {
-					"*": (req, res)=>{
+					"*": (req, res) => {
 						res.send(
 							waw.render(
 								path.join(_template, "dist", "disabled.html"),
@@ -32,7 +32,7 @@ module.exports = async (waw) => {
 								waw.translate(req)
 							)
 						);
-					}
+					},
 				},
 			});
 		}
@@ -62,10 +62,23 @@ module.exports = async (waw) => {
 						(store.data["seo_thumb"] ||
 							store.thumb ||
 							templateJson.thumb),
+					favicon:
+						store.data["seo_favicon"] ||
+						store.favicon ||
+						templateJson.favicon,
+					currency:
+						store.currency ||
+						waw.config.currency ||
+						templateJson.currency,
 				};
 
 				if (waw.config.store.pageJson) {
-					await waw.processJson(waw.config.store.pageJson, store, json, req);
+					await waw.processJson(
+						waw.config.store.pageJson,
+						store,
+						json,
+						req
+					);
 				}
 
 				if (page.json) {
@@ -89,14 +102,16 @@ module.exports = async (waw) => {
 
 		for (const page of waw.config.store.pages || []) {
 			if (
-				page.page === 'index' &&
+				page.page === "index" &&
 				store.indexPage &&
-				waw.config.store.pages.find(p => p.page === store.indexPage)
+				waw.config.store.pages.find((p) => p.page === store.indexPage)
 			) {
-				const replacedPage = waw.config.store.pages.find(p => p.page === store.indexPage);
+				const replacedPage = waw.config.store.pages.find(
+					(p) => p.page === store.indexPage
+				);
 				configurePage({
 					...replacedPage,
-					url: '/'
+					url: "/",
 				});
 			} else {
 				configurePage(page);
@@ -180,7 +195,7 @@ module.exports = async (waw) => {
 	waw.on("store_update", setStore);
 
 	const setLabelEntity = async (doc) => {
-		setStore(await waw.Store.findById(doc.store))
+		setStore(await waw.Store.findById(doc.store));
 	};
 	waw.on("label_create", setLabelEntity);
 	waw.on("label_update", setLabelEntity);

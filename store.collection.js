@@ -11,6 +11,8 @@ module.exports = async function (waw) {
 		url: { type: String, sparse: true, trim: true, unique: true },
 		domain: String,
 		website: String,
+		currency: String,
+		favicon: String,
 		markup: Number,
 		data: {},
 		variables: {},
@@ -66,6 +68,8 @@ module.exports = async function (waw) {
 		this.author = user._id;
 		this.moderators = [user._id];
 		this.tag = obj.tag;
+		this.currency = obj.currency;
+		this.favicon = obj.favicon;
 		this.location = obj.location;
 		this.domain = obj.domain;
 		this.website = obj.website;
