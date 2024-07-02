@@ -45,12 +45,7 @@ module.exports = async (waw) => {
 				const json = {
 					...templateJson,
 					...page.pageJson,
-					title:
-						(store.data[page.page + "_title"] ||
-							store.data["seo_title"] ||
-							page.page) +
-						" | " +
-						store.name,
+					title: store.data["seo_title"] || "",
 					description:
 						store.data[page.page + "_description"] ||
 						store.data["seo_description"] ||
@@ -73,6 +68,7 @@ module.exports = async (waw) => {
 				};
 
 				if (waw.config.store.pageJson) {
+					console.log(waw.config.store.pageJson);
 					await waw.processJson(
 						waw.config.store.pageJson,
 						store,
