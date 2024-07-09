@@ -73,6 +73,7 @@ module.exports = async (waw) => {
 				};
 
 				if (waw.config.store.pageJson) {
+					console.log(waw.config.store.pageJson);
 					await waw.processJson(
 						waw.config.store.pageJson,
 						store,

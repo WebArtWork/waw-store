@@ -54,9 +54,7 @@ module.exports = async (waw) => {
 		get: {
 			ensure: waw.storeIds_middleware,
 			query: (req) => {
-				return {
-					store: req.storeIds,
-				};
+				return {};
 			},
 		},
 		update: {
@@ -98,26 +96,12 @@ module.exports = async (waw) => {
 	waw.crud("store", {
 		get: [
 			{
-				// query: (req) => {
-				// 	return req.user.is.agent
-				// 		? {}
-				// 		: {
-				// 				moderators: req.user._id,
-				// 		  };
-				// },
-			},
-			{
-				name: "public",
-				ensure: waw.next,
-				query: () => {
-					return {};
-				},
-			},
-			{
-				name: "admin",
-				ensure: waw.role("admin"),
-				query: () => {
-					return {};
+				query: (req) => {
+					return req.user.is.admin
+						? {}
+						: {
+								moderators: req.user._id,
+						  };
 				},
 			},
 		],
@@ -178,20 +162,21 @@ module.exports = async (waw) => {
 			"/domain": async (req, res) => {
 				if (!req.user) {
 					return res.json({
-						text: "Unauthorized user"
+						text: "Unauthorized user",
 					});
 				}
-				const store = await waw.Store.findOne(req.user.is.admin ? {
-					_id: req.body._id
-				} : {
-					_id: req.body._id,
-					moderators: req.user._id,
-				});
-				if (
-					req.body.domain &&
-					!req.body.domain.includes('.')
-				) {
-					store.domain = req.body.domain + '.' + waw.config.land;
+				const store = await waw.Store.findOne(
+					req.user.is.admin
+						? {
+								_id: req.body._id,
+						  }
+						: {
+								_id: req.body._id,
+								moderators: req.user._id,
+						  }
+				);
+				if (req.body.domain && !req.body.domain.includes(".")) {
+					store.domain = req.body.domain + "." + waw.config.land;
 					await store.save();
 					res.json({
 						updated: store.domain,
@@ -237,11 +222,11 @@ module.exports = async (waw) => {
 					});
 				} else {
 					res.json({
-						text: "Domain has been registered with other store"
+						text: "Domain has been registered with other store",
 					});
 				}
 			},
-			"/change/agent": waw.role('admin' , async (req, res) => {
+			"/change/agent": waw.role("admin", async (req, res) => {
 				const store = await waw.Store.findById(req.body.storeId);
 				if (store) {
 					store.agent = req.body.userId;
@@ -251,13 +236,17 @@ module.exports = async (waw) => {
 					res.json(false);
 				}
 			}),
-			"/change/ownership": waw.role('admin agent', async (req, res) => {
-				const store = await waw.Store.findOne(req.user.is.admin ? {
-					_id: req.body.storeId
-				} : {
-					_id: req.body.storeId,
-					author: req.user._id
-				});
+			"/change/ownership": waw.role("admin agent", async (req, res) => {
+				const store = await waw.Store.findOne(
+					req.user.is.admin
+						? {
+								_id: req.body.storeId,
+						  }
+						: {
+								_id: req.body.storeId,
+								author: req.user._id,
+						  }
+				);
 				if (store) {
 					store.author = req.body.userId;
 					store.moderators = [req.body.userId];
@@ -266,7 +255,7 @@ module.exports = async (waw) => {
 				} else {
 					res.json(false);
 				}
-			})
+			}),
 		},
 	});
 
