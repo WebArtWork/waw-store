@@ -1,5 +1,6 @@
 const path = require("path");
 module.exports = async (waw) => {
+	waw.configurePage = {};
 	const serveStore = async (store, _template) => {
 		if (!store.domain) return;
 		console.log("serveStore: ", store.domain);
@@ -38,7 +39,7 @@ module.exports = async (waw) => {
 		}
 
 		const _page = {};
-		const configurePage = (page) => {
+		waw.configurePage[store.domain] = (page) => {
 			page.pageJson = page.pageJson || {};
 
 			const callback = async (req, res) => {
@@ -73,7 +74,6 @@ module.exports = async (waw) => {
 				};
 
 				if (waw.config.store.pageJson) {
-					console.log(waw.config.store.pageJson);
 					await waw.processJson(
 						waw.config.store.pageJson,
 						store,
@@ -110,12 +110,12 @@ module.exports = async (waw) => {
 				const replacedPage = waw.config.store.pages.find(
 					(p) => p.page === store.indexPage
 				);
-				configurePage({
+				waw.configurePage[store.domain]({
 					...replacedPage,
 					url: "/",
 				});
 			} else {
-				configurePage(page);
+				waw.configurePage[store.domain](page);
 			}
 		}
 
