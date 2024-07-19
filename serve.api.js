@@ -99,6 +99,11 @@ module.exports = async (waw) => {
 			for (const url of urls) {
 				_page[url] = callback;
 			}
+
+			waw.api({
+				domain: store.domain,
+				page: _page,
+			})
 		};
 
 		for (const page of waw.config.store.pages || []) {
